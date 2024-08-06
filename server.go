@@ -13,6 +13,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"gokart/src/webauth"
 	"html"
 	"log"
 	"net/http"
@@ -43,14 +44,21 @@ func main() {
 		usage()
 	}
 
+	authRouter := webauth.Init()
+
 	// Register handlers.
 	// All requests not otherwise mapped with go to greet.
 	// /version is mapped specifically to version.
-	http.HandleFunc("/", greet)
-	http.HandleFunc("/version", version)
+	router := http.NewServeMux()
+	router.HandleFunc("/", greet)
+	router.HandleFunc("/version", version)
+	router.Handle("/auth/", http.StripPrefix("/auth", authRouter))
 
 	log.Printf("serving http://%s\n", *addr)
-	log.Fatal(http.ListenAndServe(*addr, nil))
+	log.Fatal(http.ListenAndServe(*addr, router))
+}
+
+func fooHandler() {
 }
 
 func version(w http.ResponseWriter, r *http.Request) {
